@@ -14,7 +14,7 @@ def clear_html(url_1,text):
     listur_delete = ['<span class="ReferentFragmentdesktop__Highlight-sc-110r0d9-1 jAzSMw>',
     '<span class="ReferentFragmentdesktop__Highlight-sc-110r0d9-1 jAzSMw>','</a>','<a>','</span>','<span>', '</i>','<i>',
     '<span style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;z-index:-1" tabindex="0">','<span class="ReferentFragmentdesktop__Highlight-sc-110r0d9-1 jAzSMw">',
-    '<a class="ReferentFragmentdesktop__ClickTarget-sc-110r0d9-0 cesxpW"', 'href=',f'/{url_1}/">','&amp;','<b>','</b>',"'","/",'>',"<",'"'] + [str(i) for i in range(0,10)]
+    '<a class="ReferentFragmentdesktop__ClickTarget-sc-110r0d9-0 cesxpW"', 'href=',f'/{url_1}/">','&amp;','<b>','</b>',"'","/",'>',"<",'"']
     for i in listur_delete:
         text = text.replace(i,'')
     return text

@@ -3,4 +3,3 @@ __pycache__/
 my_account.session
 config.ini
 .vscode/
-configurator.py

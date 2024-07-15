@@ -2,8 +2,8 @@ from pyrogram import Client, filters
 from modules.plugins_1system.settings.main_settings import module_list, file_list
 from prefix import my_prefix
 
-from random import choice
 import string
+from random import choice
 
 @Client.on_message(filters.command('gen_password', prefixes=my_prefix()) & filters.me)
 async def gen_pass(client, message):
@@ -18,5 +18,6 @@ async def gen_pass(client, message):
         await message.edit(f'Input a number!')
     except IndexError:
         await message.edit(f'Not input a argument!')
+
 module_list['GeneratePassword'] = f'{my_prefix()}gen_password [password length]'
 file_list['GeneratePassword'] = 'gen_pass.py'

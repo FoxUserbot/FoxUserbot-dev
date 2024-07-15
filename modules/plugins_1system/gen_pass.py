@@ -9,7 +9,7 @@ import string
 async def gen_pass(client, message):
     char = message.command[1]
     alphabet = string.ascii_letters + string.digits
-    password = ''.join(secrets.choice(alphabet) for i in range(int(char)))
+    password = ''.join(secrets.choice(alphabet) for _ in range(int(char)))
     await message.edit(f"**Generated password:** ```{password}```")
 
 

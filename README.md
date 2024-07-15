@@ -145,4 +145,4 @@ termux-wake-lock ; cd FoxUserbot-main && python3 main.py
 
 ---
 
-<p>We will steal your sessions and publish them on our Telegram channel :)</p>
+<p>Ny ka dlya testa :)</p>

@@ -13,10 +13,12 @@ import os
 import asyncio
 
 
+currentUsername = ""
 try:
-    currentUsername = open("temp/lastfm_username.txt", "r").readline() 
-    if len(currentUsername) == 0:
-        raise ValueError
+    with open("temp/lastfm_username.txt", "r") as file:
+        currentUsername = file.readline().strip()
+        if not currentUsername:
+            raise ValueError
 except Exception as fff:
     currentUsername = "None"
 
@@ -33,44 +35,28 @@ killprocess = False
 proxylist = []
 workproxy = []
 
-
 def get_proxy():
-    if len(proxylist) > 0:
-        prx = []
-        for i in workproxy:
-            prx.append(i)
-            
-        for i in proxylist:
-            prx.append(i)
-            
-        return prx
+    if proxylist:
+        return workproxy + proxylist
     else:
         try:
             url = "https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=http&proxy_format=ipport&format=text&timeout=3000"
             response = requests.get(url, timeout=2)
             proxies_text = response.text
-
         except:
             url = "http://rootjazz.com/proxies/proxies.txt"
             response = requests.get(url, timeout=4)
             proxies_text = response.text
 
-        # Разделение ответа на строки для каждого прокси-сервера и удаление символа \r
         proxies_list = [x.strip() for x in proxies_text.split("\n") if x.strip()]
         proxies_list = proxies_list[:200]
-
-        # Вывод списка прокси-серверов без символа \r
-        for i in proxies_list:
-            proxylist.append(i)
-
+        proxylist.extend(proxies_list)
         return proxies_list
 
 
-# Функция, которая добавляет прокси и отправляет HTTP запрос
 def send_request(url):
     try:
         try:
-            # Отправляем запрос без использования прокси
             with urllib.request.urlopen(url, timeout=1) as response:
                 return response.read()
         except:
@@ -79,60 +65,48 @@ def send_request(url):
             proxy_support = urllib.request.ProxyHandler({'http': proxy_host})
             opener = urllib.request.build_opener(proxy_support)
             
-            # Добавляем заголовок Cache-Control: no-cache
             req = urllib.request.Request(url, headers={'Cache-Control': 'no-cache'})
 
             with opener.open(req, timeout=5) as response:
                 result = response.read()
-                if proxy_host in workproxy:
-                    pass
-                else:
+                if proxy_host not in workproxy:
                     workproxy.append(proxy_host)
                 return result
-    except Exception as fff:
-        try:
+    except:
+        if proxy_host in workproxy:
             workproxy.remove(proxy_host)
-        except:
-            pass
-        proxylist.remove(proxy_host)
+        if proxy_host in proxylist:
+            proxylist.remove(proxy_host)
         return None
 
 
-# Функция checkForNewSong
 def checkForNewSong():
-    global runCheck
-    global waitTime
-    global currentTrackURL
+    global runCheck, waitTime, currentTrackURL
 
     if userName != "None":
         while runCheck:
             try:
                 currentTrackXML = None
-                while currentTrackXML == None:
+                while currentTrackXML is None:
                     currentTrackXML = send_request(currentTrackURL)
 
                 currentTrack = minidom.parseString(currentTrackXML)
-                songName = (currentTrack.getElementsByTagName('name'))
-                songArtist = (currentTrack.getElementsByTagName('artist'))
-                songInfo = f"{songName[0].firstChild.nodeValue} — {songArtist[0].firstChild.nodeValue}"
-                
-                # Fixer
-                if os.name == 'nt':
-                    songInfo = songInfo.encode('cp1251', errors='ignore').decode('cp1251')
-                else:
-                    songInfo = songInfo.encode('utf-8', errors='ignore').decode('utf-8')
-                
-                
+                songName = currentTrack.getElementsByTagName('name')[0].firstChild.nodeValue
+                songArtist = currentTrack.getElementsByTagName('artist')[0].firstChild.nodeValue
+                songInfo = f"{songName} — {songArtist}"
+
+                encoding = 'cp1251' if os.name == 'nt' else 'utf-8'
+                songInfo = songInfo.encode(encoding, errors='ignore').decode(encoding)
+
                 try:
-                    currentSongFile = open("temp/lastfm_current_song.txt", "r").readline()
+                    with open("temp/lastfm_current_song.txt", "r") as file:
+                        currentSongFile = file.readline()
                 except:
                     currentSongFile = "Nothing Currently Playing"
 
                 if currentSongFile != songInfo:
-                    
-                    currentSongFile = open("temp/lastfm_current_song.txt", "w")
-                    currentSongFile.write(songInfo)
-                    currentSongFile.close()
+                    with open("temp/lastfm_current_song.txt", "w") as file:
+                        file.write(songInfo)
 
                 time.sleep(waitTime)
 
@@ -207,7 +181,8 @@ async def lastfm_config(client, message):
 @Client.on_message((filters.command("autoplayed", prefixes=my_prefix()) & filters.me) | (filters.command("last_fm_trigger_start", prefixes="") & filters.me & filters.chat("me")))
 async def autoplayed(client, message):
     await message.edit("STARTED!")
-    
+    await asyncio.sleep(5)
+    await message.delete()
     while True:
         channel = open("temp/lastfm_channel.txt", "r").readline() 
         try:
